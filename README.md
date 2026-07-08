@@ -28,12 +28,12 @@ publish → report** — so a human only reviews the final output and approves.
 ```mermaid
 flowchart TD
     CLI["CLI: orchestrator.py --week 2026-W28 --tier standard --region NA"]
-    O["🧭 Orchestrator (state machine)\nINIT → CURATE → VALIDATE → PUBLISH → REPORT"]
-    CA["🎮 CurationAgent\nfetch games via RAWG API / CSV fallback, group into genre rows"]
-    VA["🔎 ValidationAgent\nG01 Required Fields · G02 Rating Policy · G03 Row Size · G04 No Dup"]
-    CM["📝 CommsAgent\nLLM weekly summary → reports/WK##_summary.md"]
+    O["🧭 Orchestrator (state machine)<br/>INIT → CURATE → VALIDATE → PUBLISH → REPORT"]
+    CA["🎮 CurationAgent<br/>fetch games via RAWG API / CSV fallback, group into genre rows"]
+    VA["🔎 ValidationAgent<br/>G01 Required Fields · G02 Rating Policy · G03 Row Size · G04 No Dup"]
+    CM["📝 CommsAgent<br/>LLM weekly summary → reports/WK##_summary.md"]
     MP["📤 mock_publish tool (MCP pattern) → mock/published_layout.json"]
-    KB["📚 KB Layer — single source of truth\npolicy docs · rules · state"]
+    KB["📚 KB Layer — single source of truth<br/>policy docs · rules · state"]
 
     CLI --> O
     O -->|1 build rows| CA
