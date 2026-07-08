@@ -1,0 +1,18 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+mock/published_layout.json
+mock/publish_log.jsonl
+reports/WK*.md
+obs/trace/
+.DS_Store
+venv/
+.venv/
+
+# Source screenshots of the original repo — never commit
+*.JPG
+*.jpg
+*.jpeg
+*.png
+IMG_*

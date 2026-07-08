@@ -1,0 +1,23 @@
+name: tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Gate unit tests (offline)
+        run: python tests/test_gates.py
+      - name: Guardrail / telemetry tests (offline)
+        run: python tests/test_extras.py
+      - name: Evals — gate behavior + comms quality (offline)
+        run: python evals/run_evals.py
+      - name: Smoke-test the pipeline (dry-run)
+        run: python orchestrator.py --week 2026-W28 --tier standard --region NA --dry-run

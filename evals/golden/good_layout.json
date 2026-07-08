@@ -1,0 +1,16 @@
+{
+  "tier": "standard",
+  "rows": {
+    "Top Picks": [
+      {"id": "g001", "title": "Neon Vanguard", "genre": "action", "rating": "T"},
+      {"id": "g002", "title": "Crimson Circuit", "genre": "action", "rating": "M"},
+      {"id": "g003", "title": "Skyfall Raiders", "genre": "action", "rating": "T"}
+    ],
+    "Indie Spotlight": [
+      {"id": "g015", "title": "Paper Lanterns", "genre": "indie", "rating": "E"},
+      {"id": "g016", "title": "Static Bloom", "genre": "indie", "rating": "E10"},
+      {"id": "g017", "title": "Moth to Flame", "genre": "indie", "rating": "T"}
+    ]
+  },
+  "expect_passed": true
+}

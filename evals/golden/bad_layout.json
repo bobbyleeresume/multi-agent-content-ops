@@ -1,0 +1,12 @@
+{
+  "tier": "casual",
+  "rows": {
+    "Top Picks": [
+      {"id": "g001", "title": "Neon Vanguard", "genre": "action", "rating": "T"},
+      {"id": "g002", "title": "Crimson Circuit", "genre": "action", "rating": "M"},
+      {"id": "g004", "title": "Ironclad Protocol", "genre": "action", "rating": "AO"}
+    ]
+  },
+  "expect_passed": false,
+  "expect_failed_gate": "G02:RatingPolicy"
+}

@@ -1,0 +1,4 @@
+# Core pipeline runs with the Python standard library only (offline).
+# Optional extras enable the live LLM narrative and RAWG catalog:
+anthropic>=0.39.0   # CommsAgent / CurationAgent LLM calls (needs ANTHROPIC_API_KEY)
+requests>=2.31.0    # RAWG public API (needs RAWG_API_KEY); CSV fallback otherwise

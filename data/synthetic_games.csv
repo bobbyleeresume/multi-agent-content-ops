@@ -1,0 +1,31 @@
+id,title,genres,rating
+g001,Neon Vanguard,action,T
+g002,Crimson Circuit,action,M
+g003,Skyfall Raiders,action,T
+g004,Ironclad Protocol,action,M
+g005,Pulse Breaker,action,T
+g006,Havoc District,action,M
+g007,Titan Reflex,action,T
+g008,Velocity Storm,action,E10
+g009,Lost Meridian,adventure,E10
+g010,Echoes of Aldar,adventure,T
+g011,The Hollow Coast,adventure,E10
+g012,Wanderlight,adventure,E
+g013,Cinder & Sea,adventure,T
+g014,Beneath Driftwood,adventure,E10
+g015,Paper Lanterns,indie,E
+g016,Static Bloom,indie,E10
+g017,Moth to Flame,indie,T
+g018,Grayscale Diner,indie,E10
+g019,Pocket Nebula,indie,E
+g020,Tin Can Requiem,indie,T
+g021,Bumble Meadow,family,E
+g022,Puzzle Pals,family,E
+g023,Rainbow Rangers,family,E10
+g024,Cozy Campfire,family,E
+g025,Sprout Valley Kids,family,E10
+g026,Grand Strategem,strategy,T
+g027,Empire Ledger,strategy,E10
+g028,Hex Dominion,strategy,T
+g029,Frontline Tactica,strategy,M
+g030,Merchant Republics,strategy,E10
