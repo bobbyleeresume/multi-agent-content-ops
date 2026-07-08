@@ -171,3 +171,5 @@ PIPELINE ✅ SUCCESS
   `kb/domain/content_policy.md`. No code changes needed.
 
 See `PLAN.md` for the build log and roadmap.
+
+![tests](https://github.com/bobbyleeresume/multi-agent-content-ops/actions/workflows/tests.yml/badge.svg) 
