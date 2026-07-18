@@ -1,9 +1,9 @@
 """
 agents/curation_agent.py
 
-CurationAgent — fetches games, groups them into the weekly row set, and
-(optionally) uses the LLM to enrich row descriptions. Reads the row set and
-target counts from the KB; never hardcodes domain state.
+CurationAgent — fetches games and groups them into the weekly row set.
+Reads the row set and target counts from the KB (code defaults as a silent
+fallback — being made loud in REFACTOR.md R3).
 """
 from __future__ import annotations
 

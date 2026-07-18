@@ -8,7 +8,7 @@
 | Agents | `agents/` (base + curation + validation + comms) | ✅ |
 | Gates | `gates/validation_gates.py` | ✅ G01–G04, fail-fast, ValidationReport |
 | Tools | `tools/` (mock_publish MCP pattern + game_catalog RAWG/CSV) | ✅ |
-| KB | `kb/` (3 domain policies, state JSON, ADR log) | ✅ single source of truth |
+| KB | `kb/` (3 domain policies, ADR log) | ✅ single source of truth |
 | Data | `data/synthetic_games.csv` | ✅ 30 titles, offline fallback |
 | **Observability** | `obs/telemetry.py` | ✅ per-stage latency, token usage, cost/run, JSON trace |
 | **Evals** | `evals/run_evals.py` + `evals/golden/` | ✅ gate-behavior + comms-quality (deterministic judge) + optional LLM-as-judge |
@@ -30,3 +30,6 @@
    then call it RAG.
 4. **Structured curation output** — have CurationAgent emit JSON via `safe_json`
    so row descriptions are validated against a schema, not free text.
+5. **Rotation policy** — bi-weekly genre-row rotation + 2-week Top Picks
+   cooldown (was documented in the KB before implementation existed; needs
+   published-layout history).

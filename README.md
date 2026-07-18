@@ -33,7 +33,7 @@ flowchart TD
     VA["🔎 ValidationAgent<br/>G01 Required Fields · G02 Rating Policy · G03 Row Size · G04 No Dup"]
     CM["📝 CommsAgent<br/>LLM weekly summary → reports/WK##_summary.md"]
     MP["📤 mock_publish tool (MCP pattern) → mock/published_layout.json"]
-    KB["📚 KB Layer — single source of truth<br/>policy docs · rules · state"]
+    KB["📚 KB Layer — single source of truth<br/>policy docs · rules · ADR log"]
 
     CLI --> O
     O -->|1 build rows| CA
@@ -42,7 +42,6 @@ flowchart TD
     O -->|4 generate report| CM
     CA -->|reads policy/rules| KB
     VA -->|reads rules| KB
-    CM -->|reads state| KB
     CA -->|fetches| RAWG["🌐 RAWG Public API (+ CSV fallback)"]
     VA -->|gate fails| HALT["🔴 HALT — publish blocked, violations logged"]
     VA -->|all pass| MP
@@ -53,9 +52,9 @@ flowchart TD
 | Agent | Responsibility |
 |-------|----------------|
 | **Orchestrator** | State machine. Drives stage transitions. Never does domain work itself. |
-| **CurationAgent** | Fetches games, groups into rows, writes layout to KB state. LLM enriches row descriptions. |
+| **CurationAgent** | Fetches games via the catalog tool, groups them into genre rows per KB row rules. Deterministic — no LLM. |
 | **ValidationAgent** | Runs G01–G04 gates. Returns `publish_blocked=True` on any failure. Pipeline halts immediately. |
-| **CommsAgent** | Reads final state from KB. LLM generates weekly narrative. Writes `reports/` markdown. |
+| **CommsAgent** | Receives run stats from the orchestrator. LLM writes the weekly narrative (deterministic template fallback offline). Writes `reports/` markdown. |
 
 ## Validation Gates
 
@@ -112,7 +111,6 @@ multi-agent-content-ops/
 ├── guardrails.py            # PII redaction + blocklist on free-text output
 ├── kb/                      # single source of truth
 │   ├── domain/              # content_policy, row_rules, platform_tiers
-│   ├── state/               # current_layout.json
 │   └── decisions/           # ADR log
 ├── data/synthetic_games.csv # 30-title offline fallback catalog
 ├── tests/
@@ -170,7 +168,9 @@ PIPELINE ✅ SUCCESS
   add it to the `GATES` list.
 - **Add an agent:** subclass `BaseAgent`, implement `run(context) -> ...`,
   register it in `orchestrator.py`.
-- **Add a tier/region:** edit `kb/domain/platform_tiers.md` and
-  `kb/domain/content_policy.md`. No code changes needed.
+- **Adjust a tier's rating policy:** edit `kb/domain/content_policy.md` — no
+  code change. Adding a *new* tier currently also requires updating the CLI
+  tier choices in `orchestrator.py` (making the KB fully authoritative is
+  tracked in `REFACTOR.md` R3).
 
 See `PLAN.md` for the build log and roadmap.

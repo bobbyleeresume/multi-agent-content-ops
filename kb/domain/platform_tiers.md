@@ -6,5 +6,6 @@
 | standard | Mainstream gamers | Curated, broad genres | NA, EU, APAC |
 | casual | Families / light gamers | Family-friendly only | NA, EU, APAC |
 
-Add a new tier by adding a row here and a rating row in `content_policy.md`.
-No code changes needed — agents read tier config from the KB.
+Adjusting a tier's rating policy needs only a `content_policy.md` edit.
+Adding a new tier currently also requires updating the CLI tier choices in
+`orchestrator.py` (tracked in `REFACTOR.md` R3).
