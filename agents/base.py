@@ -48,7 +48,7 @@ class LLMAgent(BaseAgent):
     def llm(self, system: str, user: str, max_tokens: int = 512,
             model: str = "claude-3-5-haiku-20241022", retries: int = 2) -> str:
         """Call Claude with retry/backoff. Falls back to '' when no API key,
-        so curation/comms degrade to deterministic behavior offline."""
+        so comms degrades to deterministic behavior offline."""
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
             return ""  # offline fallback — caller handles empty string

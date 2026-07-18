@@ -8,8 +8,9 @@ otherwise falls back to the offline synthetic CSV so the pipeline runs anywhere
 Ratings are normalized to canonical ESRB codes at this boundary (see
 `models.normalize_rating`) — RAWG returns full names ("Everyone", "Teen",
 "Mature"), the CSV already uses codes, and downstream (gates, policy) only
-understands codes. An entry with an unrecognized rating is skipped rather
-than silently passed through.
+understands codes. An entry with an unrecognized rating (e.g. RAWG's
+"Rating Pending") is skipped loudly rather than silently passed through
+or defaulted.
 """
 from __future__ import annotations
 

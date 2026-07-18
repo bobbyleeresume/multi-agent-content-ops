@@ -14,9 +14,10 @@
 | **Evals** | `evals/run_evals.py` + `evals/golden/` | ✅ gate-behavior + comms-quality (deterministic judge) + optional LLM-as-judge |
 | **Guardrails** | `guardrails.py` | ✅ PII redaction + blocklist on free-text output |
 | **Failure modes** | `agents/base.py::safe_json` | ✅ schema-guarded JSON parse w/ retry + graceful None |
-| Tests | `tests/test_gates.py`, `tests/test_extras.py` | ✅ 13 + 6 |
+| Tests | `tests/test_gates.py`, `tests/test_models.py`, `tests/test_extras.py` | ✅ 13 + 7 + 7 |
 | Docs | `README.md` | ✅ Mermaid diagram, quickstart, example output |
-| CI | `.github/workflows/tests.yml` | ✅ gate tests + extras + evals + dry-run smoke |
+| CI | `.github/workflows/tests.yml` | ✅ gate + typed-model + extras tests, evals, dry-run smoke |
+| **Typed boundary** | `models.py` | ✅ `Title` dataclass + `Rating` enum, ESRB normalization at the catalog boundary |
 
 ## Roadmap (next)
 
@@ -28,8 +29,9 @@
 3. **Retrieval upgrade** — the KB is currently structured file lookup (not vector
    retrieval). If the KB grows, add embeddings + hybrid retrieval — and only
    then call it RAG.
-4. **Structured curation output** — have CurationAgent emit JSON via `safe_json`
-   so row descriptions are validated against a schema, not free text.
+4. **Structured curation output** — if row descriptions ever become generative,
+   promote curation to `LLMAgent` and emit schema-validated JSON via `safe_json`
+   (CurationAgent is currently deterministic by construction — REFACTOR.md R4).
 5. **Rotation policy** — bi-weekly genre-row rotation + 2-week Top Picks
    cooldown (was documented in the KB before implementation existed; needs
    published-layout history).

@@ -121,6 +121,7 @@ multi-agent-content-ops/
 ├── data/synthetic_games.csv # 30-title offline fallback catalog
 ├── tests/
 │   ├── test_gates.py        # 13 gate unit tests
+│   ├── test_models.py       # 7 typed-boundary tests (Rating normalization, Title validation)
 │   └── test_extras.py       # guardrails, telemetry, JSON failure-mode
 └── reports/                 # generated weekly summaries
 ```
@@ -139,6 +140,7 @@ python orchestrator.py --week 2026-W28 --tier casual --dry-run
 
 # Tests + evals (no API keys needed)
 python tests/test_gates.py
+python tests/test_models.py
 python tests/test_extras.py
 python evals/run_evals.py
 ```
@@ -146,12 +148,13 @@ python evals/run_evals.py
 ## Example Output
 
 ```
-[17:40:02] CURATE    → CURATE
+[17:40:02] INIT      → CURATE
 [17:40:02] CURATE    built 5 rows, 30 titles
-[17:40:02] VALIDATE  → VALIDATE
+[17:40:02] CURATE    → VALIDATE
 [17:40:02] VALIDATE  all gates passed
-[17:40:02] PUBLISH   → PUBLISH
-[17:40:02] REPORT    → REPORT
+[17:40:02] VALIDATE  → PUBLISH
+[17:40:02] PUBLISH   → REPORT
+[17:40:02] REPORT    → DONE
 
 PIPELINE ✅ SUCCESS
 { "success": true, "rows_published": 5, "titles_total": 30, ... }
@@ -172,8 +175,8 @@ PIPELINE ✅ SUCCESS
   with your API call. Agent contracts are unchanged.
 - **Add a gate:** write a `g05_*` function in `gates/validation_gates.py` and
   add it to the `GATES` list.
-- **Add an agent:** subclass `BaseAgent`, implement `run(context) -> ...`,
-  register it in `orchestrator.py`.
+- **Add an agent:** subclass `BaseAgent` (or `LLMAgent` if it needs the model),
+  implement `run(context) -> ...`, register it in `orchestrator.py`.
 - **Adjust a tier's rating policy:** edit `kb/domain/content_policy.md` — no
   code change. Adding a *new* tier currently also requires updating the CLI
   tier choices in `orchestrator.py` (making the KB fully authoritative is
