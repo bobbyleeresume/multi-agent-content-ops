@@ -134,7 +134,7 @@ def eval_llm_judge() -> list[tuple[str, bool, str]]:
         return [("llm_judge", True, "skipped (no ANTHROPIC_API_KEY)")]
     rows = {"Top Picks": [{"id": "g1", "title": "Neon Vanguard", "genre": "action",
                            "rating": "T"}]}
-    path = CommsAgent().run({"week": "2026-W28", "tier": "standard", "region": "NA",
+    path = CommsAgent().run({"week": "2026-W28ej", "tier": "standard", "region": "NA",
                              "rows": rows, "publish_status": "published"})
     summary = Path(path).read_text(encoding="utf-8").split("## Summary", 1)[-1].strip()
     judge = LLMAgent()

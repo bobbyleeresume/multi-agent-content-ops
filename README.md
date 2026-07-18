@@ -53,7 +53,7 @@ flowchart TD
 |-------|----------------|
 | **Orchestrator** | State machine. Drives stage transitions. Never does domain work itself. |
 | **CurationAgent** | Fetches games via the catalog tool, groups them into genre rows per KB row rules. Deterministic — no LLM. |
-| **ValidationAgent** | Runs G01–G04 gates. Returns `publish_blocked=True` on any failure. Pipeline halts immediately. |
+| **ValidationAgent** | Runs G01–G04 gates. Any failed gate fails the `ValidationReport` and halts the pipeline before publish. |
 | **CommsAgent** | Diffs the current layout against the previously published one (`compute_layout_diff`, deterministic) and has the LLM narrate what changed week-over-week (deterministic template fallback offline). Writes `reports/` markdown. |
 
 ## Validation Gates
@@ -84,11 +84,13 @@ production surface:
 - **Evals (`evals/run_evals.py`)** — the gates check structured rows; the eval
   harness checks the *LLM's own output*. A deterministic judge verifies the
   weekly report has the required sections and that its stated counts match the
-  input (catching hallucinated numbers), plus a diff-faithfulness check that
-  the week-over-week change narrative's added/removed counts match
-  `compute_layout_diff`'s own output for the same synthetic layouts (catching
-  a hallucinated diff, across first-publish and with-previous cases), plus an
-  optional LLM-as-judge for faithfulness. The golden layout set has full
+  input (catching hallucinated numbers), plus a diff-faithfulness check on
+  the week-over-week change table across first-publish and with-previous
+  cases — the table is code-generated (the LLM never writes those numbers),
+  so this check guards the `previous_rows` wiring and the rendering, while
+  hand-written expectations in `tests/test_extras.py` pin
+  `compute_layout_diff` itself — plus an optional LLM-as-judge for
+  faithfulness. The golden layout set has full
   G01–G04 gate coverage; its collection & labeling process is documented in
   `evals/golden/LABELING.md`. Runs offline; wired into CI to block
   regressions.
@@ -130,7 +132,7 @@ multi-agent-content-ops/
 │   └── decisions/           # ADR log
 ├── data/synthetic_games.csv # 30-title offline fallback catalog
 ├── tests/
-│   ├── test_gates.py        # 13 gate unit tests
+│   ├── test_gates.py        # 14 gate unit tests
 │   ├── test_models.py       # 7 typed-boundary tests (Rating normalization, Title validation)
 │   ├── test_policy.py       # 10 loud-loader tests (happy path, missing KB, strict mode, tampered table)
 │   └── test_extras.py       # guardrails, telemetry, JSON failure-mode, layout diff
@@ -146,7 +148,8 @@ cp .env.example .env                      # optional; add keys for live LLM/RAWG
 # Full pipeline (offline-safe: uses synthetic CSV + deterministic report if no keys)
 python orchestrator.py --week 2026-W28 --tier standard --region NA
 
-# Dry-run: validate only, publish nothing
+# Dry-run: validate only, publish nothing. (This one intentionally HALTs:
+# the catalog has M-rated titles and the casual tier blocks M — a G02 demo.)
 python orchestrator.py --week 2026-W28 --tier casual --dry-run
 
 # Tests + evals (no API keys needed)

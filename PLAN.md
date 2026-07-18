@@ -14,7 +14,7 @@
 | **Evals** | `evals/run_evals.py` + `evals/golden/` | ✅ gate-behavior (full G01–G04 coverage, 5 fixtures) + comms-quality (deterministic judge, incl. diff-faithfulness) + optional LLM-as-judge; dataset/labeling process in `evals/golden/LABELING.md` |
 | **Guardrails** | `guardrails.py` | ✅ PII redaction + blocklist on free-text output |
 | **Failure modes** | `agents/base.py::safe_json` | ✅ schema-guarded JSON parse w/ retry + graceful None |
-| Tests | `tests/test_gates.py`, `tests/test_models.py`, `tests/test_policy.py`, `tests/test_extras.py` | ✅ 13 + 7 + 10 + 11 |
+| Tests | `tests/test_gates.py`, `tests/test_models.py`, `tests/test_policy.py`, `tests/test_extras.py` | ✅ 14 + 7 + 10 + 11 |
 | Docs | `README.md` | ✅ Mermaid diagram, quickstart, example output |
 | CI | `.github/workflows/tests.yml` | ✅ gate + typed-model + policy-loader + extras tests, evals, dry-run smoke |
 | **Typed boundary** | `models.py` | ✅ `Title` dataclass + `Rating` enum, ESRB normalization at the catalog boundary |

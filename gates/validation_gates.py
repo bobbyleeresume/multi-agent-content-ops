@@ -87,7 +87,17 @@ def g01_required_fields(rows: dict[str, list[dict]], policy: dict) -> GateResult
 
 def g02_rating_policy(rows: dict[str, list[dict]], policy: dict) -> GateResult:
     tier = policy.get("tier", "standard")
-    allowed = set(policy.get("rating_policy", {}).get(tier, _EMERGENCY_FALLBACK_RATING_POLICY[tier]))
+    rating_policy = policy.get("rating_policy") or _EMERGENCY_FALLBACK_RATING_POLICY
+    allowed_ratings = rating_policy.get(tier)
+    if allowed_ratings is None:
+        # Unknown tier is a policy violation, not a crash: a tier added in
+        # platform_tiers.md must also get a rating row in content_policy.md.
+        return GateResult(
+            "G02:RatingPolicy", False,
+            [f"tier '{tier}' has no rating policy defined "
+             f"(add a rating row in kb/domain/content_policy.md)"],
+        )
+    allowed = set(allowed_ratings)
     violations: list[str] = []
     for row_name, titles in rows.items():
         for t in titles:

@@ -115,8 +115,9 @@ def compute_layout_diff(prev_rows: dict[str, list[dict]] | None,
 
 def _diff_section_md(diff: dict) -> str:
     """Deterministic, code-generated markdown for the 'Changes vs Previous
-    Publish' section — a table so the eval harness can check the LLM's
-    narrative claims against these exact numbers (no hallucinated counts)."""
+    Publish' section. The LLM never writes these numbers; the eval harness
+    re-checks the rendered table against `compute_layout_diff` to guard the
+    previous_rows wiring and the rendering."""
     s = diff["summary"]
     if diff["first_publish"]:
         return (

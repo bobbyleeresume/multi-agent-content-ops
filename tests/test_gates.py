@@ -48,6 +48,15 @@ def test_g02_fail_AO():
     assert not vg.g02_rating_policy(rows, STANDARD).passed
 
 
+def test_g02_unknown_tier_is_violation_not_crash():
+    # A tier present in platform_tiers.md but missing a rating row in
+    # content_policy.md must fail G02 with a clear violation, not KeyError.
+    rows = {"Row A": [make_game(1)]}
+    result = vg.g02_rating_policy(rows, {"tier": "kids",
+                                         "rating_policy": {"standard": ["E"]}})
+    assert not result.passed and "kids" in result.violations[0]
+
+
 # --- G03 Row size ---------------------------------------------------------------
 def test_g03_pass():
     rows = {"Row A": [make_game(i) for i in range(5)]}
