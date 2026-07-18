@@ -14,10 +14,11 @@
 | **Evals** | `evals/run_evals.py` + `evals/golden/` | ✅ gate-behavior + comms-quality (deterministic judge) + optional LLM-as-judge |
 | **Guardrails** | `guardrails.py` | ✅ PII redaction + blocklist on free-text output |
 | **Failure modes** | `agents/base.py::safe_json` | ✅ schema-guarded JSON parse w/ retry + graceful None |
-| Tests | `tests/test_gates.py`, `tests/test_models.py`, `tests/test_extras.py` | ✅ 13 + 7 + 7 |
+| Tests | `tests/test_gates.py`, `tests/test_models.py`, `tests/test_policy.py`, `tests/test_extras.py` | ✅ 13 + 7 + 10 + 7 |
 | Docs | `README.md` | ✅ Mermaid diagram, quickstart, example output |
-| CI | `.github/workflows/tests.yml` | ✅ gate + typed-model + extras tests, evals, dry-run smoke |
+| CI | `.github/workflows/tests.yml` | ✅ gate + typed-model + policy-loader + extras tests, evals, dry-run smoke |
 | **Typed boundary** | `models.py` | ✅ `Title` dataclass + `Rating` enum, ESRB normalization at the catalog boundary |
+| **Policy loading** | `policy.py` | ✅ `PolicyLoader` parses rating policy, required fields, row-size bounds, row set, and tiers from the KB; loud fallback + strict mode (REFACTOR.md R3) |
 
 ## Roadmap (next)
 

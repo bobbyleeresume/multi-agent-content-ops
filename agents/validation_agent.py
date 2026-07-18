@@ -2,35 +2,30 @@
 agents/validation_agent.py
 
 ValidationAgent — runs the G01–G04 gates. On any failure the pipeline halts
-immediately (fail-fast). Loads the rating policy from the KB so rules and code
-stay separate.
+immediately (fail-fast). Rating policy, required fields, and row-size bounds
+are all loaded from the KB via `policy.PolicyLoader` at runtime — the KB is
+the actual source of truth for every gate, not just G02 (REFACTOR.md R3).
 Deterministic by construction — the base class carries no LLM capability
 (REFACTOR.md R4).
 """
 from __future__ import annotations
 
-import re
-
 from agents.base import BaseAgent
 from gates import validation_gates as vg
+from policy import PolicyLoader
 
 
 class ValidationAgent(BaseAgent):
     name = "ValidationAgent"
 
-    def _rating_policy(self) -> dict[str, list[str]]:
-        """Parse allowed ratings per tier from kb/domain/content_policy.md."""
-        text = self.read_kb("domain/content_policy.md")
-        policy: dict[str, list[str]] = {}
-        for line in text.splitlines():
-            m = re.match(r"\|\s*(premium|standard|casual)\s*\|\s*([^|]+?)\s*\|", line)
-            if m:
-                policy[m.group(1)] = [r.strip() for r in m.group(2).split(",")]
-        return policy or {k: sorted(v) for k, v in vg.TIER_RATING_POLICY.items()}
-
     def run(self, context: dict) -> vg.ValidationReport:
+        loader = PolicyLoader()
+        row_min, row_max = loader.row_bounds()
         policy = {
             "tier": context.get("tier", "standard"),
-            "rating_policy": self._rating_policy(),
+            "rating_policy": loader.rating_policy(),
+            "required_fields": loader.required_fields(),
+            "row_min": row_min,
+            "row_max": row_max,
         }
         return vg.run_all({"rows": context["rows"], "policy": policy})

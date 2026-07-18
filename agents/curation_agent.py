@@ -2,36 +2,20 @@
 agents/curation_agent.py
 
 CurationAgent — fetches games and groups them into the weekly row set.
-Reads the row set and target counts from the KB (code defaults as a silent
-fallback — being made loud in REFACTOR.md R3).
+Reads the row set (row name, genre, target count) from the KB via
+`policy.PolicyLoader` — a missing/unparseable KB warns loudly (or raises
+under strict mode) rather than silently falling back (REFACTOR.md R3).
 """
 from __future__ import annotations
 
-import re
-
 from agents.base import BaseAgent
 from models import Title
+from policy import PolicyLoader
 from tools.game_catalog import fetch_games
 
 
 class CurationAgent(BaseAgent):
     name = "CurationAgent"
-
-    def _row_set(self) -> list[tuple[str, str, int]]:
-        """Parse (row_name, genre, target_count) from kb/domain/row_rules.md."""
-        text = self.read_kb("domain/row_rules.md")
-        rows: list[tuple[str, str, int]] = []
-        for line in text.splitlines():
-            m = re.match(r"\|\s*([^|]+?)\s*\|\s*([a-zA-Z]+)\s*\|\s*(\d+)\s*\|", line)
-            if m and m.group(2).lower() not in ("genre",):
-                rows.append((m.group(1).strip(), m.group(2).strip().lower(), int(m.group(3))))
-        return rows or [
-            ("Top Picks", "action", 8),
-            ("Adventure Zone", "adventure", 6),
-            ("Indie Spotlight", "indie", 6),
-            ("Family Friendly", "family", 5),
-            ("Strategy Vault", "strategy", 5),
-        ]
 
     def run(self, context: dict) -> dict[str, list[dict]]:
         """Build rows. Each pick is constructed as a `Title` (construction-time
@@ -40,7 +24,7 @@ class CurationAgent(BaseAgent):
         catalog = fetch_games()
         rows: dict[str, list[dict]] = {}
         used: set = set()
-        for row_name, genre, target in self._row_set():
+        for row_name, genre, target in PolicyLoader().row_set():
             picks = [
                 g for g in catalog
                 if genre in [x.lower() for x in g.get("genres", [])] and g["id"] not in used

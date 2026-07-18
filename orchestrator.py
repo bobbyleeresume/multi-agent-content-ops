@@ -21,6 +21,7 @@ from agents.curation_agent import CurationAgent
 from agents.validation_agent import ValidationAgent
 from agents.comms_agent import CommsAgent
 from obs.telemetry import get_tracer
+from policy import PolicyLoader, PolicyError, emergency_fallback_tiers
 
 
 class Stage(Enum):
@@ -124,8 +125,20 @@ class Orchestrator:
 def main() -> None:
     parser = argparse.ArgumentParser(description="NexCurate weekly publishing pipeline")
     parser.add_argument("--week", default="2026-W28", help="ISO week e.g. 2026-W28")
-    parser.add_argument("--tier", default="standard",
-                        choices=["premium", "standard", "casual"])
+    # Tier choices load from the KB (kb/domain/platform_tiers.md) via
+    # PolicyLoader — adding a tier there is enough, no code change (REFACTOR.md
+    # R3). PolicyLoader itself already warns + falls back non-strictly; this
+    # try/except only matters under POLICY_STRICT=1 with a broken KB, where we
+    # still want `--help`/argument parsing to work rather than hard-crash here
+    # — the pipeline run itself will raise again, loudly, once CurationAgent /
+    # ValidationAgent construct their own PolicyLoader downstream.
+    try:
+        tier_choices = PolicyLoader().tiers()
+    except PolicyError as e:
+        tier_choices = emergency_fallback_tiers()
+        print(f"[orchestrator] WARNING: tier list unavailable from the KB ({e}); "
+              f"falling back to {tier_choices}", file=sys.stderr)
+    parser.add_argument("--tier", default="standard", choices=tier_choices)
     parser.add_argument("--region", default="NA", choices=["NA", "EU", "APAC"])
     parser.add_argument("--dry-run", action="store_true",
                         help="validate only, do not publish")

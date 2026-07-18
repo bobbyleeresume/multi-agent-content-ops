@@ -1,7 +1,7 @@
 # Content Policy
 
 Single source of truth for rating rules. Agents read this at runtime — rules
-live here, not in code.
+live here, not in code (loaded via `policy.py::PolicyLoader`, REFACTOR.md R3).
 
 ## Platform Overview
 
@@ -24,4 +24,11 @@ M (Mature 17+), AO (Adults Only). AO is never permitted on any tier.
 
 ## Required Fields
 
-Every published title row must carry: `id`, `title`, `genre`, `rating`.
+Every published title row must carry all of the following fields:
+
+| Field | Description |
+|-------|-------------|
+| `id` | Unique catalog identifier |
+| `title` | Display title |
+| `genre` | Primary genre used for row placement |
+| `rating` | ESRB rating code (see Rating Policy above) |

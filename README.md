@@ -66,8 +66,10 @@ flowchart TD
 | **G04** | No duplicate titles (intra-row + cross-row) |
 
 Gates are **fail-fast**: the first failure halts the pipeline before publish and
-prints a violation report. Rules are pulled from the KB at runtime — policy
-changes need no code change or deploy.
+prints a violation report. Rules — including G01's required fields and G03's
+row-size bounds, not just G02's rating policy — are pulled from the KB at
+runtime via `policy.py::PolicyLoader`; policy changes need no code change or
+deploy.
 
 ## Reliability Layer
 
@@ -99,6 +101,8 @@ production surface:
 multi-agent-content-ops/
 ├── orchestrator.py          # state machine + CLI
 ├── models.py                # typed domain objects — Title + Rating
+├── policy.py                # PolicyLoader — loud KB-driven policy (rating,
+│                             # required fields, row bounds, row set, tiers)
 ├── agents/
 │   ├── base.py              # deterministic KB base + LLM-capable subclass (retry/offline)
 │   ├── curation_agent.py    # fetch + group into rows
@@ -122,6 +126,7 @@ multi-agent-content-ops/
 ├── tests/
 │   ├── test_gates.py        # 13 gate unit tests
 │   ├── test_models.py       # 7 typed-boundary tests (Rating normalization, Title validation)
+│   ├── test_policy.py       # 10 loud-loader tests (happy path, missing KB, strict mode, tampered table)
 │   └── test_extras.py       # guardrails, telemetry, JSON failure-mode
 └── reports/                 # generated weekly summaries
 ```
@@ -141,6 +146,7 @@ python orchestrator.py --week 2026-W28 --tier casual --dry-run
 # Tests + evals (no API keys needed)
 python tests/test_gates.py
 python tests/test_models.py
+python tests/test_policy.py
 python tests/test_extras.py
 python evals/run_evals.py
 ```
@@ -178,8 +184,9 @@ PIPELINE ✅ SUCCESS
 - **Add an agent:** subclass `BaseAgent` (or `LLMAgent` if it needs the model),
   implement `run(context) -> ...`, register it in `orchestrator.py`.
 - **Adjust a tier's rating policy:** edit `kb/domain/content_policy.md` — no
-  code change. Adding a *new* tier currently also requires updating the CLI
-  tier choices in `orchestrator.py` (making the KB fully authoritative is
-  tracked in `REFACTOR.md` R3).
+  code change. **Add a new tier:** add a row to `kb/domain/platform_tiers.md`
+  and a matching row to `content_policy.md`'s Rating Policy table — the CLI's
+  `--tier` choices load from the KB at runtime via `policy.py::PolicyLoader`,
+  so no code change or deploy is needed (REFACTOR.md R3).
 
 See `PLAN.md` for the build log and roadmap.

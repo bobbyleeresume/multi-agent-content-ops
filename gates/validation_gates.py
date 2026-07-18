@@ -9,22 +9,29 @@ Rule-based validation gates for the NexCurate weekly publishing pipeline.
     G04 — No duplicate titles (intra-row + cross-row)
 
 All gates return a GateResult. Any FAIL blocks publish immediately (fail-fast).
-Gate policies are pulled from the KB at runtime; defaults live here as a fallback.
+
+Gate policy (rating policy, required fields, row-size bounds) is loaded from
+the KB at runtime by `policy.PolicyLoader` and passed in via the `policy`
+dict each gate receives. The constants below are EMERGENCY FALLBACK ONLY,
+used when a caller's `policy` dict omits a key — which in practice only
+happens if `PolicyLoader` itself already fell back (and warned, or raised
+under strict mode) because the KB was missing or failed to parse. A silent
+drift between these constants and the KB is a bug (REFACTOR.md R3).
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
 
-# --- Defaults (overridden by kb/domain/content_policy.md at runtime) ------------
-TIER_RATING_POLICY: dict[str, set[str]] = {
+# --- Emergency fallback ONLY (see module docstring) ------------------------------
+_EMERGENCY_FALLBACK_RATING_POLICY: dict[str, set[str]] = {
     "premium": {"E", "E10", "T", "M"},
     "standard": {"E", "E10", "T", "M"},
     "casual": {"E", "E10", "T"},
 }
-REQUIRED_FIELDS = ("id", "title", "genre", "rating")
-ROW_MIN_TITLES = 3
-ROW_MAX_TITLES = 10
+_EMERGENCY_FALLBACK_REQUIRED_FIELDS = ("id", "title", "genre", "rating")
+_EMERGENCY_FALLBACK_ROW_MIN_TITLES = 3
+_EMERGENCY_FALLBACK_ROW_MAX_TITLES = 10
 
 
 # --- Data model -----------------------------------------------------------------
@@ -66,7 +73,7 @@ class ValidationReport:
 
 # --- Gates ----------------------------------------------------------------------
 def g01_required_fields(rows: dict[str, list[dict]], policy: dict) -> GateResult:
-    required = policy.get("required_fields", REQUIRED_FIELDS)
+    required = policy.get("required_fields", _EMERGENCY_FALLBACK_REQUIRED_FIELDS)
     violations: list[str] = []
     for row_name, titles in rows.items():
         for t in titles:
@@ -80,7 +87,7 @@ def g01_required_fields(rows: dict[str, list[dict]], policy: dict) -> GateResult
 
 def g02_rating_policy(rows: dict[str, list[dict]], policy: dict) -> GateResult:
     tier = policy.get("tier", "standard")
-    allowed = set(policy.get("rating_policy", {}).get(tier, TIER_RATING_POLICY[tier]))
+    allowed = set(policy.get("rating_policy", {}).get(tier, _EMERGENCY_FALLBACK_RATING_POLICY[tier]))
     violations: list[str] = []
     for row_name, titles in rows.items():
         for t in titles:
@@ -93,8 +100,8 @@ def g02_rating_policy(rows: dict[str, list[dict]], policy: dict) -> GateResult:
 
 
 def g03_row_size(rows: dict[str, list[dict]], policy: dict) -> GateResult:
-    mn = policy.get("row_min", ROW_MIN_TITLES)
-    mx = policy.get("row_max", ROW_MAX_TITLES)
+    mn = policy.get("row_min", _EMERGENCY_FALLBACK_ROW_MIN_TITLES)
+    mx = policy.get("row_max", _EMERGENCY_FALLBACK_ROW_MAX_TITLES)
     violations: list[str] = []
     for row_name, titles in rows.items():
         n = len(titles)
