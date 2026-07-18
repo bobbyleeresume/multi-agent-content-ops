@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 
 from agents.base import BaseAgent
+from models import Title
 from tools.game_catalog import fetch_games
 
 
@@ -33,6 +34,9 @@ class CurationAgent(BaseAgent):
         ]
 
     def run(self, context: dict) -> dict[str, list[dict]]:
+        """Build rows. Each pick is constructed as a `Title` (construction-time
+        validation); the return type stays `dict[str, list[dict]]` — the
+        downstream contract (gates, comms) is unchanged."""
         catalog = fetch_games()
         rows: dict[str, list[dict]] = {}
         used: set = set()
@@ -43,8 +47,13 @@ class CurationAgent(BaseAgent):
             ][:target]
             for g in picks:
                 used.add(g["id"])
-            rows[row_name] = [
-                {"id": g["id"], "title": g["title"], "genre": genre, "rating": g["rating"]}
-                for g in picks
-            ]
+            titles: list[dict] = []
+            for g in picks:
+                try:
+                    title = Title(id=g["id"], title=g["title"], genre=genre, rating=g["rating"])
+                except ValueError as e:
+                    print(f"[{self.name}] skipped '{g.get('title', g.get('id', '?'))}': {e}")
+                    continue
+                titles.append(title.to_dict())
+            rows[row_name] = titles
         return rows

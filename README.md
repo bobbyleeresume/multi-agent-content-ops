@@ -74,6 +74,11 @@ changes need no code change or deploy.
 Beyond the structural gates, the pipeline treats the LLM boundary as a
 production surface:
 
+- **Typed boundary (`models.py`)** — frozen `Title` dataclass + `Rating` enum;
+  ESRB full names from the live API are normalized to canonical codes at the
+  catalog boundary, so malformed entries fail at construction with a precise
+  error instead of surfacing at the gates (which still re-check as defense in
+  depth).
 - **Evals (`evals/run_evals.py`)** — the gates check structured rows; the eval
   harness checks the *LLM's own output*. A deterministic judge verifies the
   weekly report has the required sections and that its stated counts match the
@@ -93,6 +98,7 @@ production surface:
 ```
 multi-agent-content-ops/
 ├── orchestrator.py          # state machine + CLI
+├── models.py                # typed domain objects — Title + Rating
 ├── agents/
 │   ├── base.py              # KB grounding + guarded LLM call (retry/offline)
 │   ├── curation_agent.py    # fetch + group into rows
