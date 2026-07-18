@@ -11,14 +11,15 @@
 | KB | `kb/` (3 domain policies, ADR log) | ✅ single source of truth |
 | Data | `data/synthetic_games.csv` | ✅ 30 titles, offline fallback |
 | **Observability** | `obs/telemetry.py` | ✅ per-stage latency, token usage, cost/run, JSON trace |
-| **Evals** | `evals/run_evals.py` + `evals/golden/` | ✅ gate-behavior + comms-quality (deterministic judge) + optional LLM-as-judge |
+| **Evals** | `evals/run_evals.py` + `evals/golden/` | ✅ gate-behavior + comms-quality (deterministic judge, incl. diff-faithfulness) + optional LLM-as-judge |
 | **Guardrails** | `guardrails.py` | ✅ PII redaction + blocklist on free-text output |
 | **Failure modes** | `agents/base.py::safe_json` | ✅ schema-guarded JSON parse w/ retry + graceful None |
-| Tests | `tests/test_gates.py`, `tests/test_models.py`, `tests/test_policy.py`, `tests/test_extras.py` | ✅ 13 + 7 + 10 + 7 |
+| Tests | `tests/test_gates.py`, `tests/test_models.py`, `tests/test_policy.py`, `tests/test_extras.py` | ✅ 13 + 7 + 10 + 11 |
 | Docs | `README.md` | ✅ Mermaid diagram, quickstart, example output |
 | CI | `.github/workflows/tests.yml` | ✅ gate + typed-model + policy-loader + extras tests, evals, dry-run smoke |
 | **Typed boundary** | `models.py` | ✅ `Title` dataclass + `Rating` enum, ESRB normalization at the catalog boundary |
 | **Policy loading** | `policy.py` | ✅ `PolicyLoader` parses rating policy, required fields, row-size bounds, row set, and tiers from the KB; loud fallback + strict mode (REFACTOR.md R3) |
+| **Diff narrative** | `agents/comms_agent.py::compute_layout_diff` | ✅ deterministic week-over-week diff (added/removed titles + rows, per-row count changes) vs. the previously published layout; the LLM (or offline fallback) narrates it — replaces the old six-stat restatement (REFACTOR.md R5) |
 
 ## Roadmap (next)
 

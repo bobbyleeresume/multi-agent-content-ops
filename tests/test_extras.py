@@ -1,5 +1,6 @@
 """
-tests/test_extras.py — guardrails, telemetry, and JSON failure-mode handling.
+tests/test_extras.py — guardrails, telemetry, JSON failure-mode handling, and
+the week-over-week layout diff (CommsAgent, REFACTOR.md R5).
 Runs standalone or under pytest. Offline; no API keys.
 """
 import os
@@ -10,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from guardrails import scrub  # noqa: E402
 from obs.telemetry import Tracer  # noqa: E402
 from agents.base import BaseAgent, LLMAgent  # noqa: E402
+from agents.comms_agent import compute_layout_diff  # noqa: E402
 
 
 # --- Guardrails -----------------------------------------------------------------
@@ -56,6 +58,52 @@ def test_safe_json_offline_returns_none():
 # --- Structural: BaseAgent carries no LLM capability (REFACTOR.md R4) ------------
 def test_base_agent_has_no_llm_capability():
     assert not hasattr(BaseAgent, "llm") and not hasattr(BaseAgent, "safe_json")
+
+
+# --- compute_layout_diff (REFACTOR.md R5) ----------------------------------------
+def test_layout_diff_none_prev_marks_everything_added():
+    rows = {"Top Picks": [{"id": "g1", "title": "Neon Vanguard", "genre": "action",
+                           "rating": "T"}]}
+    diff = compute_layout_diff(None, rows)
+    assert diff["first_publish"] is True
+    assert diff["summary"]["added_count"] == 1
+    assert diff["summary"]["removed_count"] == 0
+    assert diff["added_rows"] == ["Top Picks"]
+
+
+def test_layout_diff_detects_added_and_removed_titles():
+    prev = {"Top Picks": [{"id": "g1", "title": "A", "genre": "action", "rating": "T"},
+                          {"id": "g2", "title": "B", "genre": "action", "rating": "T"}]}
+    new = {"Top Picks": [{"id": "g1", "title": "A", "genre": "action", "rating": "T"},
+                         {"id": "g3", "title": "C", "genre": "action", "rating": "T"}]}
+    diff = compute_layout_diff(prev, new)
+    assert diff["first_publish"] is False
+    assert [t["id"] for t in diff["added_titles"]] == ["g3"]
+    assert [t["id"] for t in diff["removed_titles"]] == ["g2"]
+
+
+def test_layout_diff_detects_new_and_removed_rows_and_count_changes():
+    prev = {"Row A": [{"id": "g1", "title": "A", "genre": "action", "rating": "T"}]}
+    new = {
+        "Row A": [{"id": "g1", "title": "A", "genre": "action", "rating": "T"},
+                  {"id": "g2", "title": "B", "genre": "action", "rating": "T"}],
+        "Row B": [{"id": "g3", "title": "C", "genre": "action", "rating": "T"}],
+    }
+    diff = compute_layout_diff(prev, new)
+    assert diff["added_rows"] == ["Row B"]
+    assert diff["removed_rows"] == []
+    assert diff["row_count_changes"] == [
+        {"row": "Row A", "prev_count": 1, "new_count": 2, "delta": 1}
+    ]
+
+
+def test_layout_diff_no_changes_is_all_zero():
+    rows = {"Row A": [{"id": "g1", "title": "A", "genre": "action", "rating": "T"}]}
+    diff = compute_layout_diff(rows, rows)
+    s = diff["summary"]
+    assert s["added_count"] == 0 and s["removed_count"] == 0
+    assert s["rows_added_count"] == 0 and s["rows_removed_count"] == 0
+    assert diff["row_count_changes"] == []
 
 
 if __name__ == "__main__":

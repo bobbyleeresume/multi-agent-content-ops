@@ -31,7 +31,7 @@ flowchart TD
     O["🧭 Orchestrator (state machine)<br/>INIT → CURATE → VALIDATE → PUBLISH → REPORT"]
     CA["🎮 CurationAgent<br/>fetch games via RAWG API / CSV fallback, group into genre rows"]
     VA["🔎 ValidationAgent<br/>G01 Required Fields · G02 Rating Policy · G03 Row Size · G04 No Dup"]
-    CM["📝 CommsAgent<br/>LLM weekly summary → reports/WK##_summary.md"]
+    CM["📝 CommsAgent<br/>LLM week-over-week diff narrative → reports/WK##_summary.md"]
     MP["📤 mock_publish tool (MCP pattern) → mock/published_layout.json"]
     KB["📚 KB Layer — single source of truth<br/>policy docs · rules · ADR log"]
 
@@ -54,7 +54,7 @@ flowchart TD
 | **Orchestrator** | State machine. Drives stage transitions. Never does domain work itself. |
 | **CurationAgent** | Fetches games via the catalog tool, groups them into genre rows per KB row rules. Deterministic — no LLM. |
 | **ValidationAgent** | Runs G01–G04 gates. Returns `publish_blocked=True` on any failure. Pipeline halts immediately. |
-| **CommsAgent** | Receives run stats from the orchestrator. LLM writes the weekly narrative (deterministic template fallback offline). Writes `reports/` markdown. |
+| **CommsAgent** | Diffs the current layout against the previously published one (`compute_layout_diff`, deterministic) and has the LLM narrate what changed week-over-week (deterministic template fallback offline). Writes `reports/` markdown. |
 
 ## Validation Gates
 
@@ -84,8 +84,12 @@ production surface:
 - **Evals (`evals/run_evals.py`)** — the gates check structured rows; the eval
   harness checks the *LLM's own output*. A deterministic judge verifies the
   weekly report has the required sections and that its stated counts match the
-  input (catching hallucinated numbers), plus an optional LLM-as-judge for
-  faithfulness. Runs offline; wired into CI to block regressions.
+  input (catching hallucinated numbers), plus a diff-faithfulness check that
+  the week-over-week change narrative's added/removed counts match
+  `compute_layout_diff`'s own output for the same synthetic layouts (catching
+  a hallucinated diff, across first-publish and with-previous cases), plus an
+  optional LLM-as-judge for faithfulness. Runs offline; wired into CI to block
+  regressions.
 - **Observability (`obs/telemetry.py`)** — every run records per-stage latency,
   token usage, and cost, and writes a JSON trace. The per-model cost table is
   what a routing decision (Haiku vs. larger model) would key off.
@@ -107,7 +111,7 @@ multi-agent-content-ops/
 │   ├── base.py              # deterministic KB base + LLM-capable subclass (retry/offline)
 │   ├── curation_agent.py    # fetch + group into rows
 │   ├── validation_agent.py  # runs the gates
-│   └── comms_agent.py       # weekly narrative report
+│   └── comms_agent.py       # week-over-week diff narrative report
 ├── gates/
 │   └── validation_gates.py  # G01–G04, fail-fast, ValidationReport
 ├── tools/
@@ -127,7 +131,7 @@ multi-agent-content-ops/
 │   ├── test_gates.py        # 13 gate unit tests
 │   ├── test_models.py       # 7 typed-boundary tests (Rating normalization, Title validation)
 │   ├── test_policy.py       # 10 loud-loader tests (happy path, missing KB, strict mode, tampered table)
-│   └── test_extras.py       # guardrails, telemetry, JSON failure-mode
+│   └── test_extras.py       # guardrails, telemetry, JSON failure-mode, layout diff
 └── reports/                 # generated weekly summaries
 ```
 

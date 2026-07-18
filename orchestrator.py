@@ -75,7 +75,14 @@ class Orchestrator:
         self.log("all gates passed")
 
         self.transition(Stage.PUBLISH)
-        from tools.mock_publish import publish
+        from tools.mock_publish import publish, read_published
+
+        # Read the currently-published layout BEFORE publish() overwrites it —
+        # this is the "previous" side of CommsAgent's week-over-week diff
+        # narrative (REFACTOR.md R5). None means there's nothing published yet.
+        previous_layout = read_published()
+        previous_rows = previous_layout.get("rows") if previous_layout else None
+        self.state["previous_rows"] = previous_rows
 
         with self.tracer.span("PUBLISH"):
             pub = publish(
@@ -89,7 +96,7 @@ class Orchestrator:
         with self.tracer.span("REPORT"):
             report_path = CommsAgent().run(
                 {"week": self.week, "tier": self.tier, "region": self.region, "rows": rows,
-                 "publish_status": pub.get("status")}
+                 "publish_status": pub.get("status"), "previous_rows": previous_rows}
             )
         self.state["report_path"] = report_path
 

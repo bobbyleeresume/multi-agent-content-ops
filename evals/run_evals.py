@@ -6,8 +6,13 @@ Evaluation harness. Three suites:
   1. gate_behavior  — golden good/bad layouts must produce the expected gate
                       verdict (and the expected first failing gate).
   2. comms_quality  — the generated weekly report must contain the required
-                      sections and its stated counts must match the input
-                      (deterministic judge — catches hallucinated numbers).
+                      sections; its stated counts must match the input
+                      (deterministic judge — catches hallucinated numbers);
+                      and the week-over-week diff section's added/removed
+                      counts must match `compute_layout_diff`'s own output
+                      for the same synthetic prev/new rows (diff-faithfulness
+                      — catches a hallucinated diff, not just hallucinated
+                      totals), across first-publish and with-previous cases.
   3. llm_judge      — OPTIONAL. If ANTHROPIC_API_KEY is set, an LLM-as-judge
                       rates the narrative's faithfulness 1–5 (threshold 4).
 
@@ -24,7 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from agents.comms_agent import CommsAgent  # noqa: E402
+from agents.comms_agent import CommsAgent, compute_layout_diff  # noqa: E402
 from agents.validation_agent import ValidationAgent  # noqa: E402
 from agents.base import LLMAgent  # noqa: E402
 
@@ -53,6 +58,9 @@ def eval_gate_behavior() -> list[tuple[str, bool, str]]:
 
 # --- Suite 2: comms quality (deterministic judge) -------------------------------
 def eval_comms_quality() -> list[tuple[str, bool, str]]:
+    results: list[tuple[str, bool, str]] = []
+
+    # --- case 1: baseline section/count checks, no previous publish ---------
     rows = {
         "Top Picks": [{"id": f"g{i}", "title": f"Game {i}", "genre": "action",
                        "rating": "T"} for i in range(5)],
@@ -61,19 +69,57 @@ def eval_comms_quality() -> list[tuple[str, bool, str]]:
     }
     total = sum(len(v) for v in rows.values())
     path = CommsAgent().run({
-        "week": "2026-W28", "tier": "standard", "region": "NA",
+        "week": "2026-W28e1", "tier": "standard", "region": "NA",
         "rows": rows, "publish_status": "published",
     })
     md = Path(path).read_text(encoding="utf-8")
     checks = [
         ("has_overview", "## Overview" in md),
         ("has_row_breakdown", "## Row Breakdown" in md),
+        ("has_changes_section", "## Changes vs Previous Publish" in md),
         ("has_summary", "## Summary" in md),
         ("nonempty_summary", len(md.split("## Summary", 1)[-1].strip()) > 20),
         ("count_faithful", f"| Total titles | {total} |" in md),
         ("no_placeholder", "{narrative}" not in md and "{rows_table}" not in md),
     ]
-    return [(f"comms_quality[{n}]", ok, "") for n, ok in checks]
+    results.extend((f"comms_quality[{n}]", ok, "") for n, ok in checks)
+
+    # --- case 2: no previous publish -> first-publish narrative --------------
+    path_first = CommsAgent().run({
+        "week": "2026-W28e2", "tier": "standard", "region": "NA",
+        "rows": rows, "publish_status": "published", "previous_rows": None,
+    })
+    md_first = Path(path_first).read_text(encoding="utf-8")
+    results.append((
+        "comms_quality[first_publish_stated]",
+        "First publish" in md_first,
+        "",
+    ))
+
+    # --- case 3: with previous publish -> diff-faithfulness (deterministic) --
+    prev_rows = {
+        "Top Picks": [{"id": f"g{i}", "title": f"Game {i}", "genre": "action",
+                       "rating": "T"} for i in range(3)],
+        "Strategy Vault": [{"id": f"s{i}", "title": f"Strat {i}", "genre": "strategy",
+                            "rating": "T"} for i in range(3)],
+    }
+    expected_diff = compute_layout_diff(prev_rows, rows)
+    path_diff = CommsAgent().run({
+        "week": "2026-W28e3", "tier": "standard", "region": "NA",
+        "rows": rows, "publish_status": "published", "previous_rows": prev_rows,
+    })
+    md_diff = Path(path_diff).read_text(encoding="utf-8")
+    s = expected_diff["summary"]
+    diff_checks = [
+        ("has_changes_section", "## Changes vs Previous Publish" in md_diff),
+        ("added_count_faithful", f"| Added titles | {s['added_count']} |" in md_diff),
+        ("removed_count_faithful", f"| Removed titles | {s['removed_count']} |" in md_diff),
+        ("rows_added_faithful", f"| Rows added | {s['rows_added_count']} |" in md_diff),
+        ("rows_removed_faithful", f"| Rows removed | {s['rows_removed_count']} |" in md_diff),
+    ]
+    results.extend((f"comms_quality[with_previous:{n}]", ok, "") for n, ok in diff_checks)
+
+    return results
 
 
 # --- Suite 3: LLM-as-judge (optional) -------------------------------------------
