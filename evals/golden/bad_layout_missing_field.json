@@ -1,0 +1,12 @@
+{
+  "tier": "standard",
+  "rows": {
+    "Top Picks": [
+      {"id": "g101", "title": "Broken Vector", "genre": "action", "rating": ""},
+      {"id": "g102", "title": "Steady Orbit", "genre": "action", "rating": "T"},
+      {"id": "g103", "title": "Clear Skies", "genre": "action", "rating": "E"}
+    ]
+  },
+  "expect_passed": false,
+  "expect_failed_gate": "G01:RequiredFields"
+}

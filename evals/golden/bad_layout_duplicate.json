@@ -1,0 +1,12 @@
+{
+  "tier": "standard",
+  "rows": {
+    "Top Picks": [
+      {"id": "g301", "title": "Echo Chamber", "genre": "action", "rating": "T"},
+      {"id": "g301", "title": "Echo Chamber", "genre": "action", "rating": "T"},
+      {"id": "g302", "title": "Distinct Path", "genre": "action", "rating": "E"}
+    ]
+  },
+  "expect_passed": false,
+  "expect_failed_gate": "G04:NoDuplicates"
+}

@@ -88,7 +88,9 @@ production surface:
   the week-over-week change narrative's added/removed counts match
   `compute_layout_diff`'s own output for the same synthetic layouts (catching
   a hallucinated diff, across first-publish and with-previous cases), plus an
-  optional LLM-as-judge for faithfulness. Runs offline; wired into CI to block
+  optional LLM-as-judge for faithfulness. The golden layout set has full
+  G01–G04 gate coverage; its collection & labeling process is documented in
+  `evals/golden/LABELING.md`. Runs offline; wired into CI to block
   regressions.
 - **Observability (`obs/telemetry.py`)** — every run records per-stage latency,
   token usage, and cost, and writes a JSON trace. The per-model cost table is
@@ -121,7 +123,7 @@ multi-agent-content-ops/
 │   └── telemetry.py         # per-stage latency, token usage, cost, run trace
 ├── evals/
 │   ├── run_evals.py         # gate-behavior + comms-quality + optional LLM judge
-│   └── golden/              # good/bad layout fixtures
+│   └── golden/              # 5 layout fixtures, full G01–G04 coverage + LABELING.md
 ├── guardrails.py            # PII redaction + blocklist on free-text output
 ├── kb/                      # single source of truth
 │   ├── domain/              # content_policy, row_rules, platform_tiers

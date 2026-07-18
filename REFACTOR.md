@@ -1,5 +1,7 @@
 # REFACTOR — Audit Findings & Plan (2026-07-17)
 
+**Status: R1–R6 all complete as of 2026-07-17.**
+
 A code audit against the README's claims and the original design goals. Each
 finding was verified against the current source (see file references). Ordered
 plan at the bottom; items land as independent commits.
@@ -64,12 +66,11 @@ gate — the exact failure mode typed objects exist to prevent.
 | R3 | **Loud policy loader** — single `PolicyLoader` that parses rating policy, required fields, row-size bounds, and the tier list (CLI choices) from the KB; missing file / failed parse warns loudly (or fails, configurable); code defaults demoted to clearly-labeled emergency fallback | F4 | M | ✅ 2026-07-17 |
 | R4 | **Capability split** — `BaseAgent` → KB-grounding base + LLM-capable subclass; `ValidationAgent` gets the KB base only, making validator determinism structural | F3 | S | ✅ 2026-07-17 |
 | R5 | **CommsAgent LLM surface (decision)** — either (a) drop the LLM call and declare the report deterministic, or (b) make it generative: a week-over-week change narrative diffing the current layout against the previously published one (`tools/mock_publish.read_published`). Implemented **(b)** — it gives the guardrails/evals a real job. | F2 | M | ✅ 2026-07-17 |
-| R6 | **Tests/evals track the above** — typed-boundary tests (ESRB normalization), loud-loader tests, CI stays green offline | all | S | — |
+| R6 | **Tests/evals track the above** — typed-boundary tests (ESRB normalization), loud-loader tests, CI stays green offline | all | S | ✅ 2026-07-17 |
 
 Order: R1 → R2 → R3 → R4 → R5 → R6 (R6 lands alongside each item).
 
 ## Out of scope (tracked elsewhere)
 
-Telemetry cost partitioning by stage/purpose, versioned pricing records, and
-eval dataset labeling docs (`evals/golden/LABELING.md`) are a separate
-reliability-layer work stream — see `PLAN.md` roadmap.
+Telemetry cost partitioning by stage/purpose and versioned pricing records
+are a separate reliability-layer work stream — see `PLAN.md` roadmap.

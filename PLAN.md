@@ -11,7 +11,7 @@
 | KB | `kb/` (3 domain policies, ADR log) | ✅ single source of truth |
 | Data | `data/synthetic_games.csv` | ✅ 30 titles, offline fallback |
 | **Observability** | `obs/telemetry.py` | ✅ per-stage latency, token usage, cost/run, JSON trace |
-| **Evals** | `evals/run_evals.py` + `evals/golden/` | ✅ gate-behavior + comms-quality (deterministic judge, incl. diff-faithfulness) + optional LLM-as-judge |
+| **Evals** | `evals/run_evals.py` + `evals/golden/` | ✅ gate-behavior (full G01–G04 coverage, 5 fixtures) + comms-quality (deterministic judge, incl. diff-faithfulness) + optional LLM-as-judge; dataset/labeling process in `evals/golden/LABELING.md` |
 | **Guardrails** | `guardrails.py` | ✅ PII redaction + blocklist on free-text output |
 | **Failure modes** | `agents/base.py::safe_json` | ✅ schema-guarded JSON parse w/ retry + graceful None |
 | Tests | `tests/test_gates.py`, `tests/test_models.py`, `tests/test_policy.py`, `tests/test_extras.py` | ✅ 13 + 7 + 10 + 11 |
@@ -26,8 +26,9 @@
 1. **Model routing** — route between Haiku (cheap enrichment) and a larger model
    (harder reasoning) with a cost/quality policy; telemetry already tracks the
    per-model cost needed to drive this.
-2. **Eval expansion** — grow the golden set, add adversarial layouts, and track
-   an eval score trend over time (regression budget in CI).
+2. **Eval expansion** — gate coverage across all four gates is done (2026-07-17,
+   `evals/golden/` + `LABELING.md`); remaining: adversarial layouts and an eval
+   score trend over time (regression budget in CI).
 3. **Retrieval upgrade** — the KB is currently structured file lookup (not vector
    retrieval). If the KB grows, add embeddings + hybrid retrieval — and only
    then call it RAG.

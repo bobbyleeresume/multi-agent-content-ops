@@ -3,8 +3,11 @@ evals/run_evals.py
 
 Evaluation harness. Three suites:
 
-  1. gate_behavior  — golden good/bad layouts must produce the expected gate
-                      verdict (and the expected first failing gate).
+  1. gate_behavior  — every golden layout fixture (evals/golden/*.json) must
+                      produce the expected gate verdict (and the expected
+                      first failing gate). The golden set has full G01–G04
+                      coverage; see evals/golden/LABELING.md for the dataset,
+                      label schema, and labeling procedure.
   2. comms_quality  — the generated weekly report must contain the required
                       sections; its stated counts must match the input
                       (deterministic judge — catches hallucinated numbers);
@@ -43,7 +46,10 @@ def _load(name: str) -> dict:
 # --- Suite 1: gate behavior -----------------------------------------------------
 def eval_gate_behavior() -> list[tuple[str, bool, str]]:
     results = []
-    for fixture in ("good_layout.json", "bad_layout.json"):
+    # Every fixture in the golden set (see LABELING.md — not itself a fixture,
+    # so the *.json glob already skips it), sorted for deterministic ordering.
+    fixtures = sorted(p.name for p in GOLDEN.glob("*.json"))
+    for fixture in fixtures:
         data = _load(fixture)
         report = ValidationAgent().run({"rows": data["rows"], "tier": data["tier"]})
         ok = report.passed == data["expect_passed"]

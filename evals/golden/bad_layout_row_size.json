@@ -1,0 +1,11 @@
+{
+  "tier": "standard",
+  "rows": {
+    "Top Picks": [
+      {"id": "g201", "title": "Narrow Straits", "genre": "action", "rating": "T"},
+      {"id": "g202", "title": "Two Lane Run", "genre": "action", "rating": "T"}
+    ]
+  },
+  "expect_passed": false,
+  "expect_failed_gate": "G03:RowSize"
+}
