@@ -90,7 +90,7 @@ production surface:
 - **Guardrails (`guardrails.py`)** — free-text narrative is scrubbed for PII
   (emails, phone numbers) and flagged terms before it leaves the pipeline.
 - **Failure modes** — LLM calls retry with backoff and degrade to deterministic
-  offline behavior; `BaseAgent.safe_json` validates model JSON against required
+  offline behavior; `LLMAgent.safe_json` validates model JSON against required
   keys and returns `None` rather than crashing on malformed output.
 
 ## File Tree
@@ -100,7 +100,7 @@ multi-agent-content-ops/
 ├── orchestrator.py          # state machine + CLI
 ├── models.py                # typed domain objects — Title + Rating
 ├── agents/
-│   ├── base.py              # KB grounding + guarded LLM call (retry/offline)
+│   ├── base.py              # deterministic KB base + LLM-capable subclass (retry/offline)
 │   ├── curation_agent.py    # fetch + group into rows
 │   ├── validation_agent.py  # runs the gates
 │   └── comms_agent.py       # weekly narrative report

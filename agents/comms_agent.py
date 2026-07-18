@@ -10,13 +10,13 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
-from agents.base import BaseAgent
+from agents.base import LLMAgent
 from guardrails import scrub
 
 REPORTS_DIR = Path(__file__).resolve().parent.parent / "reports"
 
 
-class CommsAgent(BaseAgent):
+class CommsAgent(LLMAgent):
     name = "CommsAgent"
 
     def _narrative(self, stats: dict) -> str:

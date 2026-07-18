@@ -4,6 +4,8 @@ agents/validation_agent.py
 ValidationAgent — runs the G01–G04 gates. On any failure the pipeline halts
 immediately (fail-fast). Loads the rating policy from the KB so rules and code
 stay separate.
+Deterministic by construction — the base class carries no LLM capability
+(REFACTOR.md R4).
 """
 from __future__ import annotations
 

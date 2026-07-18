@@ -26,7 +26,7 @@ sys.path.insert(0, str(ROOT))
 
 from agents.comms_agent import CommsAgent  # noqa: E402
 from agents.validation_agent import ValidationAgent  # noqa: E402
-from agents.base import BaseAgent  # noqa: E402
+from agents.base import LLMAgent  # noqa: E402
 
 GOLDEN = Path(__file__).resolve().parent / "golden"
 
@@ -85,7 +85,7 @@ def eval_llm_judge() -> list[tuple[str, bool, str]]:
     path = CommsAgent().run({"week": "2026-W28", "tier": "standard", "region": "NA",
                              "rows": rows, "publish_status": "published"})
     summary = Path(path).read_text(encoding="utf-8").split("## Summary", 1)[-1].strip()
-    judge = BaseAgent()
+    judge = LLMAgent()
     verdict = judge.safe_json(
         system="You are a strict QA judge. Return only JSON.",
         user=("Rate 1-5 how faithful this weekly summary is to the facts "

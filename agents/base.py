@@ -1,13 +1,16 @@
 """
 agents/base.py
 
-BaseAgent — shared scaffolding for every domain agent.
+BaseAgent — deterministic scaffolding shared by every domain agent: KB
+grounding (agents NEVER invent domain state; they read policy/rules from
+kb/ at runtime) and the run() interface. BaseAgent carries no LLM
+capability — a validator that inherits only BaseAgent cannot reach an LLM
+by type, not merely by convention (REFACTOR.md R4).
 
-Responsibilities:
-  * Read grounding facts from the KB (single source of truth). Agents NEVER
-    invent domain state; they read policy/rules from kb/ at runtime.
-  * Provide a guarded LLM call with retry + graceful offline fallback so the
-    pipeline (and CI) still runs deterministically without an API key.
+LLMAgent(BaseAgent) — adds a guarded LLM call with retry + graceful offline
+fallback, plus schema-guarded JSON parsing, so agents that need generative
+output (e.g. CommsAgent) still degrade to deterministic behavior without an
+API key.
 """
 from __future__ import annotations
 
@@ -31,6 +34,15 @@ class BaseAgent:
         if not path.exists():
             return ""
         return path.read_text(encoding="utf-8")
+
+    def run(self, context: dict) -> object:  # pragma: no cover - interface
+        raise NotImplementedError
+
+
+class LLMAgent(BaseAgent):
+    """BaseAgent plus LLM capability. Subclass this only when the agent needs
+    to call the model; deterministic agents (e.g. ValidationAgent) inherit
+    BaseAgent directly so they cannot reach an LLM by type."""
 
     # --- Guarded LLM call -------------------------------------------------------
     def llm(self, system: str, user: str, max_tokens: int = 512,
@@ -90,6 +102,3 @@ class BaseAgent:
             if all(k in data for k in required_keys):
                 return data
         return None
-
-    def run(self, context: dict) -> object:  # pragma: no cover - interface
-        raise NotImplementedError

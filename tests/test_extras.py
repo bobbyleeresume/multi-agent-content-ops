@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from guardrails import scrub  # noqa: E402
 from obs.telemetry import Tracer  # noqa: E402
-from agents.base import BaseAgent  # noqa: E402
+from agents.base import BaseAgent, LLMAgent  # noqa: E402
 
 
 # --- Guardrails -----------------------------------------------------------------
@@ -50,7 +50,12 @@ def test_telemetry_cost_and_span():
 # --- Failure-mode: safe_json offline returns None (no crash) --------------------
 def test_safe_json_offline_returns_none():
     os.environ.pop("ANTHROPIC_API_KEY", None)
-    assert BaseAgent().safe_json("s", "u", required_keys=("score",)) is None
+    assert LLMAgent().safe_json("s", "u", required_keys=("score",)) is None
+
+
+# --- Structural: BaseAgent carries no LLM capability (REFACTOR.md R4) ------------
+def test_base_agent_has_no_llm_capability():
+    assert not hasattr(BaseAgent, "llm") and not hasattr(BaseAgent, "safe_json")
 
 
 if __name__ == "__main__":
